@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="/js/hex.js" type="module"></script>
+    <script src="/js/controls.js" type="module"></script>
+    <script src="/js/board.js" type="module"></script>
+    <script src="/js/hexDrawer.js" type="module"></script>
+    <title>Hive</title>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div id="header">
+        <div id="header-name">
+          <p>Hive AI</p>
+        </div>
+        <nav class="nav-bar">
+          <ul>
+            <li><a href="#" id="playButton">Select mode</a></li>
+            <li><a href="#">Rules</a></li>
+            <li><a href="#">Reset</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <!-- Difficulty selection modal -->
+      <div id="difficultyModal" class="modal">
+        <div class="modal-content">
+          <h2>Select Mode</h2>
+          <button class="difficulty-option" id="AIVAI">Ai Vs Ai</button>
+          <button class="difficulty-option" id="1vAI">Person Vs Ai</button>
+          <button class="difficulty-option" id="1v1">Person Vs Person</button>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div id="content">
+        <div class="player player-1">
+          <p id="player-one" class="active-player">Player 1</p>
+          <div class="cards">
+            <div class="hex-card-container" ><div id="black-queen" class="hex-card"></div><span>1x Queen</span></div>
+            <div class="hex-card-container" ><div id="black-spider" class="hex-card"></div><span>2x Spider</span></div>
+            <div class="hex-card-container" ><div id="black-beetle" class="hex-card"></div><span>2x Beetle</span></div>
+            <div class="hex-card-container" ><div id="black-ant" class="hex-card"></div><span>3x Ant</span></div>
+            <div class="hex-card-container" ><div id="black-grasshopper" class="hex-card"></div><span>3x Grasshopper</span></div>
+          </div>
+        </div>
+        <div class="map">
+      <!-- <div class="hex-grid"></div> -->
+        </div>
+        <div class="player player-2">
+          <p id="player-two">Player 2</p>
+          <div class="cards">
+            <div class="hex-card-container" ><div id="white-queen" class="hex-card"></div><span>1x Queen</span></div>
+            <div class="hex-card-container"><div id="white-spider" class="hex-card"></div><span>2x Spider</span></div>
+            <div class="hex-card-container"><div id="white-beetle" class="hex-card"></div><span>2x Beetle</span></div>
+            <div class="hex-card-container"><div id="white-ant" class="hex-card"></div><span>3x Ant</span></div>
+            <div class="hex-card-container"><div id="white-grasshopper" class="hex-card"></div><span>3x Grasshopper</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- <nav>
+      <img class="logo-nav" src="/assets/logo.png" />
+    </nav>
+    <section id="game">
+      <div class="player-one-label">
+        <h1>PLAYER ONE</h1>
+        <div></div>
+      </div>
+      <div class="player-two-label">
+        <h1>PLAYER TWO</h1>
+      </div> -->
+    </section>
+  </body>
+</html>

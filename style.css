@@ -1,0 +1,297 @@
+/* Reset styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Container that holds both header and content */
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* Header section */
+#header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 5rem; /* Adjust header height */
+  background: #171415;
+  padding: 0 3rem;
+  position: fixed; /* Keep the header at the top */
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  box-shadow: 0px 2px 5px rgba(170, 138, 138, 0.1);
+}
+
+#header-name p {
+  font-size: 1.5rem;
+  color: #f7e6b3;
+  font-weight: bold;
+}
+
+/* Navigation bar styles */
+.nav-bar ul {
+  display: flex;
+  list-style: none;
+}
+
+.nav-bar li {
+  margin-left: 1rem;
+}
+
+.nav-bar a {
+  text-decoration: none;
+  font-size: 1.1rem;
+  color: #f7e6b3;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 7px;
+  /* transition: background-color 0.3s, color 0.3s; */
+}
+
+.nav-bar a:hover {
+  background-color: #edb856;
+  /* border-radius: 10px; */
+  color: #171415;
+  transition: all 0.5s !important;
+}
+
+/* Content layout */
+#content {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Player sections */
+.player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  width: 20%;
+  font-size: 1.5rem;
+  color: #171415;
+  background-color: #f6d7a6;
+  padding-top: 4rem;
+  gap: 1rem;
+  /* #f6d7a6 */
+}
+.active-player {
+  background-color: #000;
+  border-radius: 30px;
+  padding: 1rem;
+  color: #fff;
+}
+.cards {
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.hex-card {
+  --size: 40px; /* Set your size variable */
+  --sqrt3: 1.732; /* Pre-calculated sqrt(3) */
+  display: block;
+  /* box-shadow: 10px 10px 5px #000; */
+  width: calc(2 * var(--size)); /* 2 * size */
+  height: calc(var(--sqrt3) * var(--size)); /* sqrt(3) * size */
+  background-size: cover; /* Scales the image to cover the entire div */
+  background-position: center; /* Centers the image */
+  background-repeat: no-repeat; /* Prevents the image from repeating */
+  -webkit-clip-path: polygon(
+    25% 0%,
+    75% 0%,
+    100% 50%,
+    75% 100%,
+    25% 100%,
+    0% 50%
+  );
+  cursor: pointer;
+}
+.hex-card:hover {
+  transform: scale(1.1) !important;
+  transition: all 0.3s;
+  filter: brightness(1) contrast(2);
+}
+.selected-hex {
+  transform: scale(1.1); /* Slight zoom effect */
+  filter: brightness(1) contrast(2);
+}
+.dimmed-hex {
+  filter: brightness(0.5);
+}
+
+.perm-dimmed-hex {
+  filter: brightness(0.5);
+}
+.hex-card-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.hex-background {
+  background-size: cover !important; /* Scales the image to cover the entire div */
+  background-position: center !important; /* Centers the image */
+  background-repeat: no-repeat !important; /* Prevents the image from repeating */
+}
+
+#black-queen {
+  background-image: url("./assets/black_queen.png");
+}
+#black-spider {
+  background-image: url("./assets/black_spider.png");
+}
+#black-grasshopper {
+  background-image: url("./assets/black_grasshopper.png");
+}
+#black-ant {
+  background-image: url("./assets/black_ant.png");
+}
+#black-beetle {
+  background-image: url("./assets/black_beetle.png");
+}
+
+#white-queen {
+  background-image: url("./assets/white_queen.png");
+}
+#white-spider {
+  background-image: url("./assets/white_spider.png");
+}
+#white-grasshopper {
+  background-image: url("./assets/white_grasshopper.png");
+}
+#white-ant {
+  background-image: url("./assets/white_ant.png");
+}
+#white-beetle {
+  background-image: url("./assets/white_beetle.png");
+}
+
+.player-1 {
+  /* background-color: black; */
+}
+
+.player-2 {
+  /* background-color: #f5deb3; */
+}
+.active-section {
+  background-color: #ffd168;
+}
+/* Map section */
+.map {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  height: 100%;
+  width: 60%;
+  position: relative;
+  overflow: hidden;
+  background-image: url("assets/board_background.jpg");
+}
+
+/* Hexagonal Grid */
+.hex-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+  gap: 1px; /* Small gap between hexagons */
+}
+
+/* Hexagon */
+.hexagon {
+  --size: 40px; /* Set your size variable */
+  --sqrt3: 1.732; /* Pre-calculated sqrt(3) */
+  display: inline-block;
+  /* box-shadow: 10px 10px 5px #000; */
+  width: calc(2 * var(--size)); /* 2 * size */
+  height: calc(var(--sqrt3) * var(--size)); /* sqrt(3) * size */
+  background: #edb856;
+  position: absolute;
+  -webkit-clip-path: polygon(
+    25% 0%,
+    75% 0%,
+    100% 50%,
+    75% 100%,
+    25% 100%,
+    0% 50%
+  );
+}
+.hexagon-2 {
+  --size: 40px; /* Set your size variable */
+  --sqrt3: 1.732; /* Pre-calculated sqrt(3) */
+  display: inline-block;
+  /* box-shadow: 10px 10px 5px #000; */
+  width: calc(2 * var(--size)); /* 2 * size */
+  height: calc(var(--sqrt3) * var(--size)); /* sqrt(3) * size */
+  background: red;
+  position: absolute;
+  -webkit-clip-path: polygon(
+    25% 0%,
+    75% 0%,
+    100% 50%,
+    75% 100%,
+    25% 100%,
+    0% 50%
+  );
+}
+
+.possible-hex {
+  --size: 40px; /* Set your size variable */
+  --sqrt3: 1.732; /* Pre-calculated sqrt(3) */
+  display: inline-block;
+  /* box-shadow: 10px 10px 5px #000; */
+  width: calc(2 * var(--size)); /* 2 * size */
+  height: calc(var(--sqrt3) * var(--size)); /* sqrt(3) * size */
+  background: lightgrey;
+  /* border: 1px green solid; */
+  position: absolute;
+  -webkit-clip-path: polygon(
+    25% 0%,
+    75% 0%,
+    100% 50%,
+    75% 100%,
+    25% 100%,
+    0% 50%
+  );
+  cursor: pointer;
+  transition: 0.3s;
+}
+.possible-hex:hover {
+  background: #99ff99;
+  /* transform: translate(50%, 50%) rotateY(-180deg) !important; */
+  transition: 0.3s;
+}
+
+/* Stagger the hexagons for a honeycomb effect */
+.hex-grid .row:nth-child(even) .hexagon {
+  margin-left: 2rem; /* Offset every second row */
+}
+
+/**** spacing = -0.2*width ****/
