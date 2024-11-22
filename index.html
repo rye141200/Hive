@@ -20,7 +20,7 @@
         <nav class="nav-bar">
           <ul>
             <li><a href="#" id="playButton">Select mode</a></li>
-            <li><a href="#">Rules</a></li>
+            <li><a href="#" id="rulesBtn">Rules</a></li>
             <li><a href="#">Reset</a></li>
           </ul>
         </nav>
@@ -30,9 +30,34 @@
       <div id="difficultyModal" class="modal">
         <div class="modal-content">
           <h2>Select Mode</h2>
-          <button class="difficulty-option" id="AIVAI">Ai Vs Ai</button>
-          <button class="difficulty-option" id="1vAI">Person Vs Ai</button>
-          <button class="difficulty-option" id="1v1">Person Vs Person</button>
+          <button class="difficulty-option" data-id="3" >AI VS AI</button>
+          <button class="difficulty-option" data-id="2">Player VS AI</button>
+          <button class="difficulty-option" data-id="1">Player VS Player</button>
+        </div>
+      </div>
+
+      <!-- Rules -->
+      <div class="rules" id="rules">
+        <div class="rule-pages">
+          <button id="closeRules" class="close-button">X</button>
+          <div class="rule-text">
+            <p class="rule"><strong>Objective:</strong> Surround your opponent's Queen Bee piece completely while ensuring your own Queen Bee is not fully surrounded.</p>
+            <p class="rule"><strong>Game Setup:</strong> Each player starts with 11 pieces: 1 Queen Bee, 2 Spiders, 2 Beetles, 3 Grasshoppers, and 3 Soldier Ants.</p>
+            <p class="rule"><strong>Placing the First Piece:</strong> The first piece placed by each player must touch no other pieces. Subsequent placements must only touch pieces of the same color.</p>
+            <p class="rule"><strong>Queen Bee Placement:</strong> The Queen Bee must be placed within the first four turns.</p>
+            <p class="rule"><strong>Moving Pieces:</strong> Pieces can move around the Hive according to their unique movement rules. A piece may not break the Hive into separate groups during its move.</p>
+            <p class="rule"><strong>Spider Movement:</strong> Spiders move exactly three spaces around the edge of the Hive.</p>
+            <p class="rule"><strong>Beetle Movement:</strong> Beetles move one space at a time and can climb on top of other pieces, blocking them.</p>
+            <p class="rule"><strong>Grasshopper Movement:</strong> Grasshoppers jump in a straight line over one or more pieces to the next empty space.</p>
+            <p class="rule"><strong>Soldier Ant Movement:</strong> Soldier Ants can move any number of spaces around the edge of the Hive.</p>
+            <p class="rule"><strong>Queen Bee Movement:</strong> The Queen Bee can move one space at a time around the edge of the Hive.</p>
+            <p class="rule"><strong>Breaking the Hive Rule:</strong> No piece can be moved in a way that splits the Hive into separate groups.</p>
+            <p class="rule"><strong>Winning the Game:</strong> The game is won when a player surrounds their opponent's Queen Bee completely (with pieces of any color).</p>
+          </div>
+        <div class="arrows">
+          <button id="prevRule" class="nav-arrow left-arrow">&#8592;</button>
+          <button id="nextRule" class="nav-arrow right-arrow">&#8594;</button>
+        </div>
         </div>
       </div>
 

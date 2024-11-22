@@ -27,7 +27,7 @@ body {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  height: 5rem; /* Adjust header height */
+  height: 5rem;
   background: #171415;
   padding: 0 3rem;
   position: fixed; /* Keep the header at the top */
@@ -41,6 +41,137 @@ body {
   font-size: 1.5rem;
   color: #f7e6b3;
   font-weight: bold;
+}
+
+.modal {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.modal-content {
+  background-color: #f7e6b3;
+  padding: 2rem;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 18rem;
+  height: 15rem;
+  max-width: 90%;
+}
+
+.modal-content h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: #171415;
+}
+
+.difficulty-option {
+  display: block;
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  margin: 0.5rem 0;
+  background-color: #171415;
+  color: #f7e6b3;
+  border: none;
+  border-radius: 7px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.rules {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.rule-pages {
+  background-color: #f7e6b3;
+  padding: 2rem;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 30rem;
+  height: 20rem;
+  max-width: 90%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.rule-text {
+  margin: auto 0;
+}
+.rule {
+  display: none;
+  font-size: 1rem;
+  color: #171415;
+}
+
+.rule.active {
+  display: block;
+}
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.arrows {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  align-items: center;
+}
+
+.arrows button {
+  background-color: #171415;
+  color: #f7e6b3;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.arrows button:hover {
+  background-color: #edb856;
+  color: #171415;
+  transform: scale(1.1);
+}
+
+.arrows button:focus {
+  outline: none;
+  box-shadow: 0 0 5px #edb856;
+}
+
+.difficulty-option:hover {
+  background-color: #edb856;
+  color: #171415;
+  transform: scale(1.05);
 }
 
 /* Navigation bar styles */
@@ -76,6 +207,7 @@ body {
   flex-direction: row;
   justify-content: center;
   align-items: center;
+  padding-top: 4rem;
   width: 100%;
   height: 100%;
 }
@@ -103,6 +235,7 @@ body {
 .cards {
   padding: 2rem;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   flex-wrap: wrap;
   gap: 2rem;
@@ -128,6 +261,7 @@ body {
   );
   cursor: pointer;
 }
+
 .hex-card:hover {
   transform: scale(1.1) !important;
   transition: all 0.3s;
@@ -243,6 +377,27 @@ body {
     0% 50%
   );
 }
+
+.can-hover {
+  cursor: pointer;
+}
+.can-hover:hover {
+}
+.selected-hex-from-board {
+  content: "";
+}
+.selected-hex-from-board::after {
+  content: "";
+  position: absolute; /* Position relative to .hexagon-wrapper */
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  background: #79ed5660;
+  -webkit-clip-path: inherit; /* Matches the hexagon shape */
+  clip-path: inherit;
+}
+
 .hexagon-2 {
   --size: 40px; /* Set your size variable */
   --sqrt3: 1.732; /* Pre-calculated sqrt(3) */

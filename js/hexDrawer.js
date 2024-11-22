@@ -1,28 +1,3 @@
-import { generateAllNextPossibleMoves } from "/js/board.js";
-function addToSet(set, newHexDirection) {
-  if (
-    ![...set].some(
-      (hexDirection) =>
-        hexDirection.hex.coordinates === newHexDirection.hex.coordinates
-    )
-  )
-    set.push(newHexDirection);
-}
-const filterAdjacentOpponentHex = (gameArray, player) => {
-  const enemies = gameArray
-    .filter((hexObj) => hexObj.player != player)
-    .map((hexObj) => hexObj.hex);
-  const positionSet = [];
-  enemies
-    .flatMap((enemy) => generateAllNextPossibleMoves(enemy))
-    .forEach((enemy) => addToSet(positionSet, enemy));
-  return positionSet.filter(
-    (possibleMove) =>
-      !gameArray
-        .map((hexObj) => hexObj.hex.coordinates)
-        .includes(possibleMove.hex.coordinates)
-  );
-};
 export class hexDrawer {
   size;
   gap;
@@ -42,37 +17,39 @@ export class hexDrawer {
     this.hexContainer = hexContainer;
     this.highlightedHex = highlightedHex;
   }
+  drawHighlightedMovementsForAnInsect(allowedMoves) {
+    //!1) Erase all highlighted possible placements
+    this.eraseAllPossibleHex();
+    //!2) Draw the possible moves by coordinates {hex,direction}
+  }
   drawInitialHex() {
     return this._drawHexByCoordinates("50%", "50%");
   }
   drawInitialInsect(insectHTML) {
     return this._drawInsectByCoordinates("50%", "50%", insectHTML);
   }
-  drawHighlightedPossibleMoves(possibleMoves, startCoordinates, gameArray) {
-    /* if (gameArray.length < 4) {
-      const currentPlayer = gameArray[gameArray.length - 1].player == 1 ? 2 : 1;
-      console.log(filterAdjacentOpponentHex(gameArray, currentPlayer));
-      return filterAdjacentOpponentHex(gameArray, currentPlayer)
-        .filter(
-          (position) =>
-            !possibleMoves
-              .map((possibleMove) => possibleMove.hex.coordinates)
-              .includes(position.coordinates)
-        )
-        .map((possibleMove) =>
-          this.drawHex(possibleMove, startCoordinates, this.highlightedHex)
+  drawHighlightedPossibleMoves(possibleMoves) {
+    this.eraseAllPossibleHex();
+    possibleMoves.map((possibleMoveObj) =>
+      possibleMoveObj.possibleMoves.forEach((possibleMove) => {
+        this.drawHex(
+          possibleMove,
+          possibleMoveObj.startCoordinates,
+          this.highlightedHex
         );
-    } else */
-    return possibleMoves
-      .filter(
-        (possibleMove) =>
-          !gameArray
-            .map((hexObj) => hexObj.hex.coordinates)
-            .includes(possibleMove.hex.coordinates)
-      )
-      .map((possibleMove) =>
-        this.drawHex(possibleMove, startCoordinates, this.highlightedHex)
-      );
+      })
+    );
+  }
+  eraseAllPossibleHex() {
+    const possibleHexesHTML = [...this.hexContainer.children].filter(
+      (hexHTML) => hexHTML.classList.contains("possible-hex")
+    );
+    possibleHexesHTML.forEach((possibleHexHTML) =>
+      this.eraseHex(possibleHexHTML)
+    );
+  }
+  eraseHex(hexHTML) {
+    this.hexContainer.removeChild(hexHTML);
   }
   drawHex(move, startCoordinates, hextype = this.hexType) {
     const axis = this._determineAxis(
