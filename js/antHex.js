@@ -24,17 +24,21 @@ export class AntHex extends Hex {
     });
 
     //!possibleMove.hex.isEqual(hex)
+    //isInContact(
+    //  getNeighbors(gameArray, possibleMove.hex),
+    //  getNeighbors(gameArray, this)
+    //)
+    const gameArrayDeepCopy = Object.assign([], gameArray).filter(
+      (hexObj) => !hexObj.hex.isEqual(this)
+    );
+
     return allPossibleMoves.filter(
       (possibleMove) =>
-        isAdjacent(gameArray, possibleMove) &&
+        isAdjacent(gameArrayDeepCopy, possibleMove) &&
         !isOccupied(gameArray, possibleMove) &&
         !allowedMoves.some((move) => move.hex.isEqual(possibleMove.hex)) &&
         !startHex.isEqual(possibleMove.hex) &&
-        canSlide(possibleMove.hex, hex, gameArray) &&
-        isInContact(
-          getNeighbors(gameArray, possibleMove.hex),
-          getNeighbors(gameArray, this)
-        )
+        canSlide(possibleMove.hex, hex, gameArrayDeepCopy)
     );
   }
   generateAntAllowedMoves(gameArray) {
@@ -75,7 +79,7 @@ export class AntHex extends Hex {
     if (!canMoveBreadthFirstSearch(gameArray, this)) return null;
 
     const allowedMoves = this.generateAntAllowedMoves(gameArray);
-    console.log(allowedMoves);
-    return allowedMoves;
+
+    return allowedMoves.map((hexDirectionObj) => hexDirectionObj.hex);
   }
 }

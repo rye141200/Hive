@@ -171,6 +171,7 @@ export function canMoveBreadthFirstSearch(gameArray, originalHex) {
   const neighbors = getNeighbors(gameArray, originalHex).map(
     (neighbor) => neighbor.hex
   );
+
   if (neighbors.length === 1) return true;
   if (neighbors.length === 5 || neighbors.length == 6) return false;
   //!2) Deep copy game array without originalHex
@@ -196,14 +197,35 @@ export function canMoveBreadthFirstSearch(gameArray, originalHex) {
           gameArrayDeepCopy
             .map((arr) => arr.hex.coordinates)
             .includes(possibleMove.coordinates) &&
-          !visited
-            .map((node) => node.coordinates)
-            .includes(possibleMove.coordinates)
+          !visited.some((hex) => hex.isEqual(possibleMove))
       )
       .forEach((possibleMove) => queue.push(possibleMove));
-    if (visited.length === gameArrayDeepCopy.length) return true;
   }
-  return false;
+  const realVisitedNodes = [];
+  visited.forEach((visitedNode) => {
+    if (
+      !realVisitedNodes
+        .map((node) => node.coordinates)
+        .includes(visitedNode.coordinates)
+    )
+      realVisitedNodes.push(visitedNode);
+  });
+  //! Visited is the same length as the original game array + EVERY SINGLE NEIGHBOR IS IN VISITED
+  //! .isEqual()
+  // I am not in toilet lol
+  let neighborsDiscoveredInVisitedArray = 0;
+  for (let i = 0; i < realVisitedNodes.length; i++)
+    for (let j = 0; j < neighbors.length; j++)
+      neighborsDiscoveredInVisitedArray += realVisitedNodes[i].isEqual(
+        neighbors[j]
+      )
+        ? 1
+        : 0;
+
+  return (
+    realVisitedNodes.length === gameArrayDeepCopy.length &&
+    neighborsDiscoveredInVisitedArray === neighbors.length
+  );
 }
 function canMove(gameArray, originalHex) {
   //!1) Get all neighbors of the current piece

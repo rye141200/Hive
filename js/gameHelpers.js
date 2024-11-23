@@ -1,5 +1,14 @@
 export class GameHelpers {
-  constructor() {}
+  gameArray;
+  beginMovement;
+  playerOneSection;
+  playerTwoSection;
+  constructor(gameArray, beginMovement, playerOneSection, playerTwoSection) {
+    this.gameArray = gameArray;
+    this.beginMovement = beginMovement;
+    this.playerOneSection = playerOneSection;
+    this.playerTwoSection = playerTwoSection;
+  }
   generateAllNextPossibleMoves = (hex) => {
     const directions = ["n", "ne", "nw", "s", "se", "sw"];
     return directions.map((direction) => {
@@ -18,7 +27,9 @@ export class GameHelpers {
     const allPossibleMovesFromEnemy = enemyPlayedHexObjs.map(
       (enemyPlayedHexObj) => {
         return {
-          possibleMoves: generateAllNextPossibleMoves(enemyPlayedHexObj.hex),
+          possibleMoves: this.generateAllNextPossibleMoves(
+            enemyPlayedHexObj.hex
+          ),
           startHexObj: enemyPlayedHexObj,
         };
       }
@@ -65,7 +76,7 @@ export class GameHelpers {
     //!5) Construct the startCoordinates object
     allPossibleMovesFromPlayer.forEach(
       (possibleMoveObj) =>
-        (possibleMoveObj.startCoordinates = constructStartCoordinates(
+        (possibleMoveObj.startCoordinates = this.constructStartCoordinates(
           possibleMoveObj.startHexObj.hexHTML,
           possibleMoveObj.startHexObj.hex
         ))
@@ -120,7 +131,7 @@ export class GameHelpers {
     });
   };
   selectCard = (cardsArray, clickedCard) => {
-    resetCards(cardsArray);
+    this.resetCards(cardsArray);
     cardsArray.forEach((card) => {
       if (card != clickedCard) card.classList.add("dimmed-hex");
     });
@@ -142,8 +153,8 @@ export class GameHelpers {
     handlePlayerSection(playerTwoSection, event);
   }
   disablePlayerPanels = () => {
-    playerOneSection.removeEventListener("click", handleP1);
-    playerTwoSection.removeEventListener("click", handleP2);
+    playerOneSection.removeEventListener("click", this.handleP1);
+    playerTwoSection.removeEventListener("click", this.handleP2);
   };
   togglePlayers = () => {
     if (player === 1) {

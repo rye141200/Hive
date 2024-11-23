@@ -28,13 +28,15 @@ export class QueenHex extends Hex {
     const allPossibleMoves = directions.map((direction) => {
       return { hex: this.generateNextHex(direction), direction };
     });
-
+    const gameArrayDeepCopy = Object.assign([], gameArray).filter(
+      (hexObj) => !hexObj.hex.isEqual(this)
+    );
     //!3) Filter the new Hexes so that they don't violate any of the three main constraints
     const allowedMoves = allPossibleMoves.filter(
       (possibleMove) =>
         isAdjacent(gameArray, possibleMove) &&
         !isOccupied(gameArray, possibleMove) &&
-        canSlide(possibleMove.hex, this, gameArray) &&
+        canSlide(possibleMove.hex, this, gameArrayDeepCopy) &&
         isInContact(
           getNeighbors(gameArray, possibleMove.hex),
           getNeighbors(gameArray, this)

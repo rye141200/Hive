@@ -26,16 +26,21 @@ export class BeetleHex extends Hex {
     const allPossibleMoves = directions.map((direction) => {
       return { hex: this.generateNextHex(direction), direction };
     });
+    let beetleNeighbors = getNeighbors(gameArray, this);
 
-    const allowedMoves = allPossibleMoves.filter(
+    let allowedMoves = allPossibleMoves.filter(
       (possibleMove) =>
         isAdjacent(gameArray, possibleMove) &&
-        isInContact(
-          getNeighbors(gameArray, possibleMove.hex),
-          getNeighbors(gameArray, this)
-        )
+        isInContact(getNeighbors(gameArray, possibleMove.hex), beetleNeighbors)
     );
-    // console.log(allowedMoves);
+
+    beetleNeighbors = beetleNeighbors.map((hexObj) => hexObj.hex);
+    allowedMoves = allowedMoves.map((hexDirectionObj) => hexDirectionObj.hex);
+    //! Add beetle neighbors if filtered out by the isInContact method
+    beetleNeighbors.forEach((beetleNeighbor) => {
+      if (allowedMoves.every((move) => !move.isEqual(beetleNeighbor)))
+        allowedMoves.push(beetleNeighbor);
+    });
     return allowedMoves;
   }
 }

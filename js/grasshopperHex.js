@@ -64,6 +64,6 @@ export class GrasshopperHex extends Hex {
       (possibleMove) => !possibleMove.hex.isEqual(this)
     );
     console.log(allowedMoves);
-    return allowedMoves;
+    return allowedMoves.map((hexObj) => hexObj.hex);
   }
 }

@@ -437,6 +437,7 @@ body {
   );
   cursor: pointer;
   transition: 0.3s;
+  opacity: 0.7;
 }
 .possible-hex:hover {
   background: #99ff99;

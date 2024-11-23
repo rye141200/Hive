@@ -21,6 +21,24 @@ export class hexDrawer {
     //!1) Erase all highlighted possible placements
     this.eraseAllPossibleHex();
     //!2) Draw the possible moves by coordinates {hex,direction}
+    allowedMoves.forEach((move) => this.drawByAbsoluteCoordinates(move));
+  }
+  /**
+   * q even => 50% + ((r-s)/2) * vertical spacing
+   */
+  drawByAbsoluteCoordinates(hex) {
+    const hexHTML = document.createElement("div");
+    hexHTML.classList.add(this.highlightedHex);
+    hexHTML.style.top = `calc(50% + ${(hex.r - hex.s) / 2} * 1.732 * ${
+      this.size + this.gap
+    }px)`;
+    hexHTML.style.left = `calc(50% + ${hex.q} * (3/2)*${
+      this.size + this.gap
+    }px)`;
+    hexHTML.style.transform = "translate(-50%, -50%)";
+    hexHTML.dataset.coordinates = hex.coordinates;
+    this.hexContainer.appendChild(hexHTML);
+    return hex;
   }
   drawInitialHex() {
     return this._drawHexByCoordinates("50%", "50%");

@@ -24,22 +24,29 @@ const generateAllPossibleAllowedNextHex = (
   gameArray,
   hex,
   startHex,
-  currentNeighbors
+  currentNeighbors,
+  rootHex
 ) => {
   const directions = ["n", "s", "ne", "nw", "se", "sw"];
+  const gameArrayDeepCopy = gameArray.filter(
+    (hexObj) => !hexObj.hex.isEqual(rootHex)
+  );
 
   const allPossibleMoves = directions
     .map((direction) => {
       return { hex: generateNextHex(direction, hex), direction };
     })
     .filter((possibleMove) => {
-      const possibleNeighbors = getNeighbors(gameArray, possibleMove.hex);
+      const possibleNeighbors = getNeighbors(
+        gameArray,
+        possibleMove.hex
+      ).filter((neighborHexObj) => !neighborHexObj.hex.isEqual(rootHex));
 
       return (
         isAdjacent(gameArray, possibleMove) &&
         !isOccupied(gameArray, possibleMove) &&
         !startHex.isEqual(possibleMove.hex) &&
-        canSlide(possibleMove.hex, hex, gameArray) &&
+        canSlide(possibleMove.hex, hex, gameArrayDeepCopy) &&
         isInContact(possibleNeighbors, currentNeighbors)
       );
     });
@@ -60,10 +67,10 @@ export class SpiderHex extends Hex {
     spiderTree.generateTree(spiderTree.root);
     printTree(spiderTree.root);
     console.log("-------------------------------");
-    //    spiderTree.constructTree();
-    // spiderTree.printTree();
-
-    //return allowedMoves;
+    const allowedMoves = [];
+    addTerminalNodesToArray(spiderTree.root, allowedMoves);
+    console.log(allowedMoves);
+    return allowedMoves;
   }
 }
 
@@ -92,8 +99,14 @@ function printTree(node, depth = 0) {
       node.hex.coordinates +
       ` ===> parent ${node.parent?.hex}`
   );
-
   node.children.forEach((child) => printTree(child, depth + 1));
+}
+function addTerminalNodesToArray(node, array, depth = 0) {
+  if (node.children.length === 0 && depth === 3)
+    if (array.every((hex) => !hex.isEqual(node.hex))) array.push(node.hex);
+  node.children.forEach((child) =>
+    addTerminalNodesToArray(child, array, depth + 1)
+  );
 }
 class SpiderTree {
   root;
@@ -109,7 +122,8 @@ class SpiderTree {
       this.gameArray,
       startNode.hex,
       startNode.hex,
-      getNeighbors(this.gameArray, startNode.hex)
+      getNeighbors(this.gameArray, startNode.hex),
+      this.root.hex
     );
 
     children.forEach((child) => startNode.addChild(child.hex)); // add all children except parent

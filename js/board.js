@@ -5,10 +5,10 @@ import { BeetleHex } from "/js/beetleHex.js";
 import { GrasshopperHex } from "/js/grasshopperHex.js";
 import { AntHex } from "/js/antHex.js";
 import { SpiderHex } from "/js/spiderHex.js";
+//import { GameTree } from "/js/GameAlgorithms.js";
 
 //! Selectors and global variables
 const map = document.querySelector(".map");
-// const playerSection = document.querySelectorAll(".player");
 const playerOneSection = document.querySelector(".player-1");
 const playerTwoSection = document.querySelector(".player-2");
 const playerOneLabel = document.querySelector("#player-one");
@@ -188,6 +188,10 @@ export const togglePlayers = () => {
     playerTwoLabel.classList.remove("active-player");
     playerOneSection.classList.add("active-section");
     playerTwoSection.classList.remove("active-section");
+    if (beginMovement.playerOne) {
+      resetHovering();
+      enableHovering("black");
+    }
   } else {
     playerTwoSection.addEventListener("click", handleP2);
     playerOneSection.removeEventListener("click", handleP1);
@@ -200,16 +204,16 @@ export const togglePlayers = () => {
     playerOneLabel.classList.remove("active-player");
     playerTwoSection.classList.add("active-section");
     playerOneSection.classList.remove("active-section");
+    if (beginMovement.playerTwo) {
+      resetHovering();
+      enableHovering("white");
+    }
   }
   currentCard = null;
 };
 const setInsectAssets = (insectHTML, id) => {
   insectHTML.style.background = `url(./assets/${id.split("-").join("_")}.png)`;
   insectHTML.classList.add("hex-background");
-  if (beginMovement.playerOne && id.split("-")[0] === "black")
-    insectHTML.classList.add("can-hover");
-  else if (beginMovement.playerTwo && id.split("-")[0] === "white")
-    insectHTML.classList.add("can-hover");
 };
 const decrementInsectCount = (id) => {
   const el = document.querySelector(`#${id}`);
@@ -226,6 +230,12 @@ const decrementInsectCount = (id) => {
   }
   span.textContent = `${counter}x${temp}`;
 };
+const resetHovering = () => {
+  [...map.children].forEach((playedPieceHTML) =>
+    playedPieceHTML.classList.remove("can-hover")
+  );
+};
+
 const enableHovering = (blackOrWhite) => {
   [...map.children]
     .filter((playedPieceHTML) => {
@@ -245,29 +255,31 @@ const enableHovering = (blackOrWhite) => {
     .forEach((playedPieceHTML) => playedPieceHTML.classList.add("can-hover"));
 };
 //! Rounds
-const roundFourRules = (gameArray, currentRound) => {
-  if (
-    !beginMovement.playerOne &&
-    gameArray.some(
-      (hexObj) =>
-        hexObj.hexHTML.style.background
-          .match(/\/([a-z_]+)\.png/i)?.[1]
-          .split("_")
-          .pop() === "queen" && hexObj.type.player === 1
-    )
-  )
-    beginMovement.playerOne = true;
-  if (
-    !beginMovement.playerTwo &&
-    gameArray.some(
-      (hexObj) =>
-        hexObj.hexHTML.style.background
-          .match(/\/([a-z_]+)\.png/i)?.[1]
-          .split("_")
-          .pop() === "queen" && hexObj.type.player === 2
-    )
-  )
-    beginMovement.playerTwo = true;
+const isQueenPlayed = (canPlayerMove, player) =>
+  !canPlayerMove &&
+  gameArray.some(
+    (hexObj) =>
+      hexObj.hexHTML.style.background
+        .match(/\/([a-z_]+)\.png/i)?.[1]
+        .split("_")
+        .pop() === "queen" && hexObj.type.player === player
+  );
+const enforceToPlayQueen = (playerSection, type) => {
+  const cardsArray = [
+    ...[...playerSection.children[1].children].map((div) => div.children[0]),
+  ];
+  currentCard = document.querySelector(`#${type}-queen`);
+  cardsArray
+    .filter((card) => card.id != currentCard.id)
+    .forEach((card) => card.classList.add("dimmed-hex"));
+  selectCard(cardsArray, currentCard);
+  disablePlayerPanels();
+  return true;
+};
+
+const roundFourRules = (gameArray) => {
+  if (isQueenPlayed(beginMovement.playerOne, 1)) beginMovement.playerOne = true;
+  if (isQueenPlayed(beginMovement.playerTwo, 2)) beginMovement.playerTwo = true;
 
   const numberOfPlayedBlacks = gameArray.filter(
     (hexObj) => hexObj.player == 1
@@ -277,45 +289,24 @@ const roundFourRules = (gameArray, currentRound) => {
   ).length;
 
   if (
-    currentRound == 1 &&
+    currentRound == 0 &&
     numberOfPlayedBlacks == 3 &&
     !beginMovement.playerOne
   ) {
-    const cardsArray = [
-      ...[...playerOneSection.children[1].children].map(
-        (div) => div.children[0]
-      ),
-    ];
-    currentCard = document.querySelector("#black-queen");
-    cardsArray
-      .filter((card) => card.id != currentCard.id)
-      .forEach((card) => card.classList.add("dimmed-hex"));
-    selectCard(cardsArray, currentCard);
-    disablePlayerPanels();
-    beginMovement.playerOne = true;
+    beginMovement.playerOne = enforceToPlayQueen(playerOneSection, "black");
     return true;
   }
   if (
-    currentRound == 0 &&
+    currentRound == 1 &&
     numberOfPlayedWhites == 3 &&
     !beginMovement.playerTwo
   ) {
-    const cardsArray = [
-      ...[...playerTwoSection.children[1].children].map(
-        (div) => div.children[0]
-      ),
-    ];
-    currentCard = document.querySelector("#white-queen");
-    cardsArray
-      .filter((card) => card.id != currentCard.id)
-      .forEach((card) => card.classList.add("dimmed-hex"));
-    selectCard(cardsArray, currentCard);
-    disablePlayerPanels();
-    beginMovement.playerTwo = true;
+    beginMovement.playerTwo = enforceToPlayQueen(playerTwoSection, "white");
     return true;
   }
   return false;
 };
+
 const handleRoundOne = (gameDrawer, gameArray) => {
   //!1) Draw the starting hexagon
   const insectHTML = gameDrawer.drawInitialHex();
@@ -339,18 +330,22 @@ const handleRoundOne = (gameDrawer, gameArray) => {
       startCoordinates: startCoordinates,
     },
   ]);
-  roundFourRules(gameArray, currentRound);
+
+  currentRound = (currentRound + 1) % 2;
+  roundFourRules(gameArray);
   player = 2;
   togglePlayers();
 };
 
-const handlePlacement = (
-  e,
-  gameDrawer,
-  gameArray,
-  currentRound,
-  beginMovement
-) => {
+/*
+ * [element]
+ * [element,element]
+ * [element,element,element]
+ * [element,element,element]
+ *
+ *
+ */
+const handlePlacement = (e, gameDrawer, gameArray) => {
   const possibleHex = e.target;
   //!0) Guard clause
   if (!possibleHex.classList.contains("possible-hex")) return;
@@ -366,96 +361,102 @@ const handlePlacement = (
     .split(",")
     .map((coordinate) => coordinate.replace(/[()]/g, ""));
 
+  //gameArray[gameArray.length - 1].player == 1 ? 2 : 1
   const hexObj = constructHexObject(
     possibleHex,
     new Hex(
       Number.parseInt(coordinatesArray[0]),
       Number.parseInt(coordinatesArray[1])
     ),
-    gameArray[gameArray.length - 1].player == 1 ? 2 : 1
+    currentRound == 1 ? 2 : 1
   );
 
   //!3) Drawing the possible highlighted moves
 
   gameArray.push(hexObj);
-  player = gameArray[gameArray.length - 1].player == 1 ? 2 : 1;
-  const noToggle = roundFourRules(gameArray, currentRound);
+  currentRound = (currentRound + 1) % 2;
+  player = currentRound == 1 ? 2 : 1;
+  const noToggle = roundFourRules(gameArray);
   if (!noToggle) togglePlayers();
 
   gameDrawer.drawHighlightedPossibleMoves(
     generateAllNextAllowedPossibleMoves(gameArray, player)
   );
 };
-const handleMovement = (e) => {
-  //!1) Highlight the selected piece
-  const insectHTML = e.target;
-  if (!insectHTML.style.background) return;
-  [...map.children].forEach((childHTML) =>
-    childHTML.classList.remove("selected-hex-from-board")
-  );
-  insectHTML.classList.add("selected-hex-from-board");
-  currentCard = insectHTML;
-  //!2) Identify the piece, construct hexObj
-  const coordinatesArray = insectHTML.dataset.coordinates
-    .split(",")
-    .map((coordinate) => coordinate.replace(/[()]/g, ""));
+const handleMovement = (e, gameDrawer) => {
+  //!0) Guard clause
+  if (e.target.classList.contains("can-hover")) {
+    //!1) Highlight the selected piece
+    const insectHTML = e.target;
+    if (!insectHTML.style.background) return;
+    [...map.children].forEach((childHTML) =>
+      childHTML.classList.remove("selected-hex-from-board")
+    );
+    insectHTML.classList.add("selected-hex-from-board");
+    currentCard = insectHTML;
+    //!2) Identify the piece, construct hexObj
+    const coordinatesArray = insectHTML.dataset.coordinates
+      .split(",")
+      .map((coordinate) => coordinate.replace(/[()]/g, ""));
 
-  const hexObj = constructHexObject(
-    insectHTML,
-    new Hex(
-      Number.parseInt(coordinatesArray[0]),
-      Number.parseInt(coordinatesArray[1])
-    ),
-    gameArray[gameArray.length - 1].player == 1 ? 2 : 1
-  );
-  console.log(hexObj);
-  //!3) Generate the moves according to the type of the hexObj
-  const moves = hexObj.type.generateAllowedPossibleMoves(gameArray);
-  console.log(moves);
-  //!4) Draw the possible moves
+    const hexObj = constructHexObject(
+      insectHTML,
+      new Hex(
+        Number.parseInt(coordinatesArray[0]),
+        Number.parseInt(coordinatesArray[1])
+      ),
+      currentRound == 1 ? 2 : 1
+    );
 
+    //!3) Generate the moves according to the type of the hexObj
+    const moves = hexObj.type.generateAllowedPossibleMoves(gameArray);
+    console.log(moves);
+    //!4) Draw the possible moves
+    gameDrawer.drawHighlightedMovementsForAnInsect(moves);
+  }
   //!5) Place the piece
+  if (
+    e.target.classList.contains("possible-hex") &&
+    [...map.children].some((playedCard) =>
+      playedCard.classList.contains("selected-hex-from-board")
+    )
+  ) {
+    //?5.1) Get the highlighted insect
+    const highlightedInsectHTML = [...map.children].filter((playedCard) =>
+      playedCard.classList.contains("selected-hex-from-board")
+    )[0];
+    //?5.2) Set the possible move with the background url
+    e.target.style.background = highlightedInsectHTML.style.background;
+    highlightedInsectHTML.style.background = "";
+  }
 };
 //! Listeners
 togglePlayers();
 
 map.addEventListener("click", (e) => {
-  //&& !e.target.classList.contains("hex")
   if (e.target.style.background) currentCard = e.target;
   if (!currentCard) return alert("FUCK YOU CHOOSE AN INSECT FOR FUCK SAKE");
+  [...map.children].forEach((childHTML) =>
+    childHTML.classList.remove("selected-hex-from-board")
+  );
 
-  let gameDrawer = player == 1 ? playerOneDrawer : playerTwoDrawer;
+  let gameDrawer = currentRound == 1 ? playerOneDrawer : playerTwoDrawer;
 
   if (gameArray.length == 0) {
     handleRoundOne(gameDrawer, gameArray);
-    currentRound = (currentRound + 1) % 2;
-    /* if (beginMovement.playerOne && currentRound == 0) {
-      //!handle movement for player one or handle placement
-      if (enterThisSectionAgainPlayerOne) {
-        enableHovering("black");
-        enterThisSectionAgainPlayerOne = false;
-      }
-    } */
     return;
   }
 
   if (beginMovement.playerOne && currentRound == 0) {
     //!handle movement for player one or handle placement
-    if (enterThisSectionAgainPlayerOne) {
-      enableHovering("black");
-      enterThisSectionAgainPlayerOne = false;
-    }
-    handleMovement(e);
+
+    handleMovement(e, gameDrawer);
   }
   if (beginMovement.playerTwo && currentRound == 1) {
-    //! Handle movement for player two or handle placement
-    if (enterThisSectionAgainPlayerTwo) {
-      enableHovering("white");
-      enterThisSectionAgainPlayerTwo = false;
-    }
-    handleMovement(e);
+    //!handle movement for player two or handle placement
+    handleMovement(e, gameDrawer);
   }
-  handlePlacement(e, gameDrawer, gameArray, currentRound, beginMovement);
+  handlePlacement(e, gameDrawer, gameArray);
 
-  currentRound = (currentRound + 1) % 2;
+  // console.log("Player to play: ", currentRound == 0 ? 1 : 2);
 });
