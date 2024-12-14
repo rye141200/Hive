@@ -3,13 +3,19 @@ const playButton = document.getElementById("playButton");
 const difficultyButtons = document.querySelectorAll(".difficulty-option");
 const rulesBtn = document.querySelector("#rulesBtn");
 const rulesModal = document.getElementById("rules");
+const endgameModal = document.getElementById("endgame");
 const closeRules = document.getElementById("closeRules");
 const prevRule = document.getElementById("prevRule");
 const nextRule = document.getElementById("nextRule");
 const ruleElements = document.querySelectorAll(".rule");
+const resetBtnEndgame = document.querySelector(".reset-btn-endgame");
 
 let mode = 1;
 //! event handlers
+resetBtnEndgame.addEventListener("click", () => {
+  location.reload();
+});
+
 playButton.addEventListener("click", function () {
   document.getElementById("difficultyModal").style.display = "flex";
 });

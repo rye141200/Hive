@@ -86,8 +86,14 @@ export class GameAlgorithms {
     this.gameArray.some(
       (hexObj) => hexObj.insectName == "queen" && hexObj.player == player
     );
+  isPinned = (HexObj) =>
+    this.gameArray
+      .filter((hexObj) => hexObj.hex.isEqual(HexObj.hex))
+      .some((hexObj) => hexObj.hex.stack > HexObj.hex.stack);
   isImmobilized = (HexObj, gameArray) =>
-    !HexObj.canMove || !canPhysicallySlide(HexObj.hex, gameArray);
+    !HexObj.canMove ||
+    !this.isPinned(HexObj) ||
+    !canPhysicallySlide(HexObj.hex, gameArray);
   minMax() {
     // Getting AI current movements
     const rootNode = new Node(null, null, null, -Infinity, this.player, null);
@@ -111,7 +117,7 @@ export class GameAlgorithms {
     /* console.log(
       `Best heuristic: ${Math.max(...moves.map((move) => move.heuristic))}`
     ); */
-    console.log(moves);
+    return moves;
   }
   alphaBeta() {
     const rootNode = new Node(null, null, null, -Infinity, this.player, null);
@@ -131,6 +137,7 @@ export class GameAlgorithms {
       timeMetrics
     );
     let bestMoves;
+    console.log(moves);
     if (
       this.round === 3 &&
       this.gameArray.filter(
@@ -140,17 +147,19 @@ export class GameAlgorithms {
     ) {
       bestMoves = moves.filter((hexObj) => hexObj.insectName === "queen")[0];
       return bestMoves;
-    } else
-      bestMoves = moves.filter((node) => node.heuristic === rootNode.heuristic);
+    } else {
+      const maxHeuristic = moves.sort((a, b) => b.heuristic - a.heuristic)[0]
+        .heuristic;
+      if (maxHeuristic === undefined) return null;
+      bestMoves = moves.filter((node) => node.heuristic === maxHeuristic);
+    }
     this.round++;
     console.log("Player round", this.round);
-
-    console.log(moves);
 
     console.log("Memo");
     console.log(this.memo);
     this.board.updateCanMove();
-    console.log(this.gameArray);
+    // console.log(this.gameArray);
 
     return bestMoves[Math.floor(Math.random() * bestMoves.length)];
   }
@@ -191,30 +200,18 @@ export class GameAlgorithms {
       this.gameArray,
       node
     );
-    /* console.dir("Generated movements");
-    console.dir(JSON.parse(JSON.stringify(movements)));
-    console.dir("Current game state");
-    console.dir(JSON.parse(JSON.stringify(this.board.gameArray))); */
-    /* if (this.gameTree[depth]) {
-      const treeNode = new TreeNode(node);
-      treeNode.children = movements;
-      this.gameTree[depth].push(treeNode);
-    } else {
-      const treeNode = new TreeNode(node);
-      treeNode.children = movements;
-      this.gameTree.push([treeNode]);
-    } */
-
     timeMetrics.moveGeneratorTime += Date.now() - moveGeneratorStartTime;
+
     if (maximizingPlayer) {
       let maxEval = -Infinity;
       for (let child of movements) {
         this.applyMove(child);
         let heuristicValue;
-        if (this.board.isWinningState(maximizingPlayer ? 2 : 1))
-          heuristicValue = Infinity;
-        else if (this.board.isWinningState(maximizingPlayer ? 1 : 2))
-          heuristicValue = -Infinity;
+        const isMaximizerWinning = this.board.isWinningState(this.opponent);
+        const isMinimizerWinning = this.board.isWinningState(this.player);
+        if (isMaximizerWinning && isMinimizerWinning) heuristicValue = 0;
+        else if (isMaximizerWinning) heuristicValue = Infinity;
+        else if (isMinimizerWinning) heuristicValue = -Infinity;
         else
           heuristicValue = this.abPruning(
             depth + 1,
@@ -244,16 +241,16 @@ export class GameAlgorithms {
         this.applyMove(child);
 
         let heuristicValue;
-
-        if (this.board.isWinningState(maximizingPlayer ? 2 : 1))
-          heuristicValue = Infinity;
-        else if (this.board.isWinningState(maximizingPlayer ? 1 : 2))
-          heuristicValue = -Infinity;
+        const isMaximizerWinning = this.board.isWinningState(this.opponent);
+        const isMinimizerWinning = this.board.isWinningState(this.player);
+        if (isMaximizerWinning && isMinimizerWinning) heuristicValue = 0;
+        else if (isMaximizerWinning) heuristicValue = Infinity;
+        else if (isMinimizerWinning) heuristicValue = -Infinity;
         else
           heuristicValue = this.abPruning(
             depth + 1,
             child,
-            false,
+            true,
             alpha,
             beta,
             timeMetrics
@@ -514,20 +511,10 @@ export class GameAlgorithms {
         return 0;
       opponentQueenNeighbors.forEach((neighbor) => {
         advantage += 200;
-        if (
-          //myPieces.some((myPiece) => myPiece.hex.isEqual(neighbor.hex))
-          neighbor.player === player &&
-          neighbor.insectName !== "ant"
-        ) {
-          /* console.log("Adding bonus for sticking to queen for player");
-          console.dir(JSON.parse(JSON.stringify(gameArrayDeepCopy)));
-          console.log("------------------------------"); */
+        if (neighbor.player === player && neighbor.insectName !== "ant") {
           advantage += 5500;
         } else advantage += 5000;
         if (
-          /* opponentPieces.some((opponentPiece) =>
-            opponentPiece.hex.isEqual(neighbor.hex)
-          ) */
           neighbor.player === opponent &&
           this.isImmobilized(neighbor, gameArrayDeepCopy)
         )
@@ -595,17 +582,9 @@ export class GameAlgorithms {
       opponentQueenHexObj &&
       this.isImmobilized(opponentQueenHexObj, gameArrayDeepCopy)
     ) {
-      /* console.log(`+30000 for player: ${player}`);
-      console.log("Current game state");
-      console.dir(JSON.parse(JSON.stringify(gameArrayDeepCopy)));
-      console.log("------------------------"); */
       advantage += 30000;
     }
     if (myQueenHexObj && this.isImmobilized(myQueenHexObj, gameArrayDeepCopy)) {
-      /* console.log(`+30000 for opponent: ${opponent}`);
-      console.log("Current game state");
-      console.dir(JSON.parse(JSON.stringify(gameArrayDeepCopy)));
-      console.log("------------------------"); */
       threat += 30000;
     }
 

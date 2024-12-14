@@ -16,6 +16,11 @@ const playerOneSection = document.querySelector(".player-1");
 const playerTwoSection = document.querySelector(".player-2");
 const playerOneLabel = document.querySelector("#player-one");
 const playerTwoLabel = document.querySelector("#player-two");
+const difficultyModal = document.querySelector("#difficultyModal");
+const resetBtn = document.querySelector("#resetBtn");
+const selectedModeSpan = document.querySelector("#selectedModeSpan");
+const playButton = document.querySelector("#playButton");
+const endgameContainer = document.querySelector("#endgame-container");
 let currentRound = 0;
 const gameArray = [];
 const playerOneDrawer = new hexDrawer(40, map, 1.5, "hexagon", "possible-hex");
@@ -35,7 +40,15 @@ let currentCard = null;
 let enterThisSectionAgainPlayerOne = true;
 let enterThisSectionAgainPlayerTwo = true;
 const board = new Board(gameArray);
+
+let gameArrayChanged = false;
+
+let selectedMode = "Player VS Player";
 //! Helpers
+const displayEndgameMessage = (text) => {
+  endgameContainer.style.display = "flex";
+  endgameContainer.children[0].children[0].textContent = `${text}`;
+};
 export const generateAllNextPossibleMoves = (hex) => {
   const directions = ["n", "ne", "nw", "s", "se", "sw"];
   return directions.map((direction) => {
@@ -362,6 +375,26 @@ const roundFourRules = (gameArray) => {
   return false;
 };
 
+const roundFourRulesAI = (gameArray) => {
+  if (isQueenPlayed(beginMovement.playerOne, 1)) {
+    beginMovement.playerOne = true;
+    gameArray.forEach((hexObj) => hexObj.hexHTML.classList.add("can-hover"));
+  }
+
+  const numberOfPlayedBlacks = gameArray.filter(
+    (hexObj) => hexObj.player == 1
+  ).length;
+  if (
+    currentRound == 0 &&
+    numberOfPlayedBlacks == 3 &&
+    !beginMovement.playerOne
+  ) {
+    beginMovement.playerOne = enforceToPlayQueen(playerOneSection, "black");
+    return true;
+  }
+  return false;
+};
+
 const handleRoundOne = (gameDrawer, gameArray) => {
   //!1) Draw the starting hexagon
   const insectHTML = gameDrawer.drawInitialHex();
@@ -393,6 +426,24 @@ const handleRoundOne = (gameDrawer, gameArray) => {
   togglePlayers();
 };
 
+const handleRoundOnePlayerVsAI = (gameDrawer, gameArray) => {
+  //!1) Draw the starting hexagon
+  const insectHTML = gameDrawer.drawInitialHex();
+
+  setInsectAssets(insectHTML, currentCard.id);
+  insectHTML.dataset.stack = 0;
+  decrementInsectCount(currentCard.id);
+
+  //!2) Construct the hexObj, add it to the gameArray
+  const hexObj = constructHexObject(insectHTML, new Hex(0, 0), 1);
+  gameArray.push(hexObj);
+  gameArrayChanged = true;
+  currentRound = (currentRound + 1) % 2;
+  roundFourRulesAI(gameArray);
+  currentCard = null;
+  /*   player = 2;
+  togglePlayers(); */
+};
 const handlePlacement = (e, gameDrawer, gameArray) => {
   const possibleHex = e.target;
   //!0) Guard clause
@@ -431,6 +482,39 @@ const handlePlacement = (e, gameDrawer, gameArray) => {
     generateAllNextAllowedPossibleMoves(gameArray, player)
   );
 };
+const handlePlacementPlayerVsAI = (e, gameDrawer, gameArray) => {
+  const possibleHex = e.target;
+  //!0) Guard clause
+  if (!possibleHex.classList.contains("possible-hex")) return;
+
+  //!1) Converting the possible move into an actual move
+  possibleHex.classList.add(gameDrawer.hexType);
+  setInsectAssets(possibleHex, currentCard.id);
+  decrementInsectCount(currentCard.id);
+  possibleHex.classList.remove("possible-hex");
+
+  //!2) Push the hexObj
+  const coordinatesArray = possibleHex.dataset.coordinates
+    .split(",")
+    .map((coordinate) => coordinate.replace(/[()]/g, ""));
+  const hexObj = constructHexObject(
+    possibleHex,
+    new Hex(
+      Number.parseInt(coordinatesArray[0]),
+      Number.parseInt(coordinatesArray[1])
+    ),
+    currentRound == 1 ? 2 : 1
+  );
+
+  //!3) Drawing the possible highlighted moves
+  gameArray.push(hexObj);
+  gameArrayChanged = true;
+  currentRound = (currentRound + 1) % 2;
+  player = currentRound == 1 ? 2 : 1;
+  roundFourRulesAI(gameArray);
+  currentCard = null;
+};
+
 const handleMovement = (e, gameDrawer) => {
   //!0) Guard clause
   if (e.target.classList.contains("can-hover")) {
@@ -540,6 +624,7 @@ const handleMovement = (e, gameDrawer) => {
     gameDrawer.drawHighlightedPossibleMoves(
       generateAllNextAllowedPossibleMoves(gameArray, player)
     );
+    currentCard = null;
   }
   //! If there was a selected-hex-from-board and the target was NOT a possible-hex, reset the selected-hex-from-board effect and put the
   else if (
@@ -559,13 +644,124 @@ const handleMovement = (e, gameDrawer) => {
     );
   }
 };
-const playerVsPlayer = () => {
+
+const handleMovementPlayerVsAI = (e, gameDrawer) => {
+  //!0) Guard clause
+  if (e.target.classList.contains("can-hover")) {
+    //!1) Highlight the selected piece
+    const insectHTML = e.target;
+    if (!insectHTML.style.background) return;
+    [...map.children].forEach((childHTML) =>
+      childHTML.classList.remove("selected-hex-from-board")
+    );
+    insectHTML.classList.add("selected-hex-from-board");
+    currentCard = insectHTML;
+    //!2) Identify the piece
+    const hexObj = gameArray.filter(
+      (hexObj) => hexObj.hexHTML === insectHTML
+    )[0];
+    //!3) Generate the moves according to the type of the hexObj
+    if (!hexObj.canMove) {
+      gameDrawer.eraseAllPossibleHex();
+      return;
+    }
+
+    const moves = hexObj.type.generateAllowedPossibleMoves(gameArray);
+    //!4) Draw the possible moves
+    gameDrawer.drawHighlightedMovementsForAnInsect(moves);
+  }
+  //!5) Place the piece
+  if (
+    e.target.classList.contains("possible-hex") &&
+    [...map.children].some((playedCard) =>
+      playedCard.classList.contains("selected-hex-from-board")
+    )
+  ) {
+    //
+    //?5.1) Get the highlighted insect
+    const highlightedInsectHTML = [...map.children].filter((playedCard) =>
+      playedCard.classList.contains("selected-hex-from-board")
+    )[0];
+    //?5.2) Set the possible move with the background url
+    turnPossibleMoveIntoInsect(e.target, highlightedInsectHTML);
+    const coordinatesArray = e.target.dataset.coordinates
+      .split(",")
+      .map((coordinate) => coordinate.replace(/[()]/g, ""));
+
+    //?5.3) Update the game array
+
+    //?5.3.1) check if the type is beetle to handle the stacking
+    const occupiedHex = new Hex(
+      Number.parseInt(coordinatesArray[0]),
+      Number.parseInt(coordinatesArray[1])
+    );
+    //?5.3.2)  All hexes in the same position (coordinates)
+    let highestStacked = 0;
+    const isBeetleStackingOnAPiece = isOccupied(gameArray, {
+      hex: occupiedHex,
+      direction: "n",
+    });
+    if (isBeetleStackingOnAPiece) {
+      const sameCoordinatesArray = gameArray.filter((hexObj) =>
+        hexObj.hex.isEqual(occupiedHex)
+      );
+      for (let i = 0; i < sameCoordinatesArray.length; i++) {
+        if (highestStacked < sameCoordinatesArray[i].hex.stack)
+          highestStacked = sameCoordinatesArray[i].hex.stack;
+      }
+    }
+
+    const index = gameArray.findIndex(
+      (hexObj) => hexObj.hexHTML === highlightedInsectHTML
+    );
+    gameArray[index].hex = new Hex(
+      Number.parseInt(coordinatesArray[0]),
+      Number.parseInt(coordinatesArray[1])
+    );
+    gameArray[index].hex.stack = isBeetleStackingOnAPiece
+      ? highestStacked + 1
+      : 0;
+    gameArray[index].type = constructInsectObject(
+      gameArray[index].insectName,
+      gameArray[index].hex
+    );
+    gameArray[index].type.stack = isBeetleStackingOnAPiece
+      ? highestStacked + 1
+      : 0;
+    gameArray[index].hexHTML = e.target;
+    gameArray[index].hexHTML.dataset.stack = gameArray[index].hex.stack;
+    gameArrayChanged = true;
+    //?5.4) Delete the selected insectHTML from the DOM tree
+    highlightedInsectHTML.remove();
+
+    //?5.5) Increment the Round
+    currentRound = (currentRound + 1) % 2;
+    player = currentRound == 1 ? 2 : 1;
+    gameDrawer.eraseAllPossibleHex();
+    currentCard = null;
+  }
+  //! If there was a selected-hex-from-board and the target was NOT a possible-hex, reset the selected-hex-from-board effect and put the
+  else if (
+    !e.target.classList.contains("possible-hex") &&
+    [...map.children].some((playedCard) =>
+      playedCard.classList.contains("selected-hex-from-board")
+    ) &&
+    !e.target.classList.contains("selected-hex-from-board")
+  ) {
+    document
+      .querySelector(".selected-hex-from-board")
+      .classList.remove("selected-hex-from-board");
+    gameDrawer.eraseAllPossibleHex();
+    gameDrawer.drawHighlightedPossibleMoves(
+      generateAllNextAllowedPossibleMoves(gameArray, 1)
+    );
+    currentCard = null;
+  }
+};
+
+const playerVsPlayer = (e) => {
   if (e.target.style.background) currentCard = e.target;
-  if (!currentCard) return alert("FUCK YOU CHOOSE AN INSECT FOR FUCK SAKE");
-  // [...map.children].forEach((childHTML) =>
-  //   childHTML.classList.remove("selected-hex-from-board")
-  // );
-  // console.log("before click player is ", player);
+  if (!currentCard) return alert("Choose an insect!");
   let gameDrawer = currentRound == 1 ? playerOneDrawer : playerTwoDrawer;
 
   if (gameArray.length == 0) {
@@ -595,21 +791,145 @@ const playerVsPlayer = () => {
     // generateAllowedPlacements(gameArray, 2);
   }
 };
+
+const playerOneRound = (e) => {
+  if (e.target.style.background) currentCard = e.target;
+
+  if (!currentCard) return alert("Choose an insect!");
+  let gameDrawer = playerOneDrawer;
+  if (gameArray.length == 0) {
+    handleRoundOnePlayerVsAI(gameDrawer, gameArray);
+    // togglePlayers();
+    // console.log("Toggled players!");
+    return;
+  }
+  if (beginMovement.playerOne) handleMovementPlayerVsAI(e, gameDrawer);
+  handlePlacementPlayerVsAI(e, gameDrawer, gameArray);
+};
+const decrementInsectCountAI = (AI) => {
+  const pieceTypes = [
+    "white-queen",
+    "white-spider",
+    "white-beetle",
+    "white-ant",
+    "white-grasshopper",
+  ];
+  const piecesCount = {
+    "white-queen": 1,
+    "white-spider": 2,
+    "white-beetle": 2,
+    "white-ant": 3,
+    "white-grasshopper": 3,
+  };
+
+  // Loop over the game array and count the pieces for player 2 (white)
+  gameArray.forEach((hexObj) => {
+    if (
+      hexObj.player === 2 &&
+      pieceTypes.includes(`white-${hexObj.insectName}`)
+    ) {
+      piecesCount[`white-${hexObj.insectName}`]--;
+    }
+  });
+
+  // Update the UI for each piece type
+  pieceTypes.forEach((pieceType) => {
+    const remainingCount = piecesCount[pieceType];
+    const el = document.querySelector(`#${pieceType}`);
+    const span = el.nextElementSibling;
+    const temp = span.textContent.split("x")[1];
+    span.textContent = `${remainingCount}x${temp}`;
+    if (remainingCount === 0) {
+      el.classList.add("perm-dimmed-hex");
+      el.style.pointerEvents = "none";
+    }
+  });
+};
+const AIRound = (AI) => {
+  if (!gameArrayChanged) return;
+  gameArrayChanged = false;
+  console.log("AI is playing ");
+  currentRound = (currentRound + 1) % 2;
+  //!1) First round for AI
+  if (gameArray.length === 1) {
+    const hexHTML = playerTwoDrawer.drawForAI(new Hex(0, 1), "white", "spider");
+    gameArray.push({
+      hexHTML: hexHTML,
+      hex: new Hex(0, 1),
+      player: 2,
+      type: new SpiderHex(0, 1),
+      insectName: "spider",
+    });
+    hexHTML.style.background;
+    hexHTML.classList.add("hex-background");
+    //* Draw for player one
+    playerOneDrawer.drawHighlightedPossibleMoves(
+      generateAllNextAllowedPossibleMoves(gameArray, 1)
+    );
+    decrementInsectCountAI(AI);
+    return;
+  }
+  //!2) Normal rounds
+  const bestMove = AI.alphaBeta();
+  console.log(bestMove);
+  if (!bestMove)
+    return playerOneDrawer.drawHighlightedPossibleMoves(
+      generateAllNextAllowedPossibleMoves(gameArray, 1)
+    );
+
+  if (!bestMove.originalPieceHex) {
+    //?2.1) Placement
+    const hexHTML = playerOneDrawer.drawForAI(
+      bestMove.possibleMoveHex,
+      "white",
+      bestMove.insectName
+    );
+    const type = constructInsectObject(
+      bestMove.insectName,
+      bestMove.possibleMoveHex
+    );
+    type.stack = bestMove.possibleMoveHex.stack;
+    gameArray.push(
+      constructHexObject(hexHTML, bestMove.possibleMoveHex, bestMove.player)
+    );
+  } else {
+    //?2.2) Movement
+    const hexObjToMutate = gameArray.filter(
+      (hexObj) =>
+        hexObj.hex.isEqual(bestMove.originalPieceHex) &&
+        hexObj.hex.stack === bestMove.originalPieceHex.stack &&
+        hexObj.player === bestMove.player
+    )[0];
+    map.removeChild(hexObjToMutate.hexHTML);
+    AI.simulatePlacingPossibleMoveInGameArray(bestMove, "apply");
+    const hexHTML = playerOneDrawer.drawForAI(
+      bestMove.possibleMoveHex,
+      bestMove.player === 1 ? "black" : "white",
+      bestMove.insectName
+    );
+    hexObjToMutate.hexHTML = hexHTML;
+  }
+  decrementInsectCountAI(AI);
+  //* Draw for player one
+  playerOneDrawer.drawHighlightedPossibleMoves(
+    generateAllNextAllowedPossibleMoves(gameArray, 1)
+  );
+};
 //! Listeners
 togglePlayers();
 
 const memoKhedr = new GameStateCache(gameArray);
-//const memoOthman = new GameStateCache(gameArray);
-//const khedrKarawita = new GameAlgorithms(gameArray, memoKhedr, board, 1, 4);
-//const othmanAbdelJaleelShisha = new GameAlgorithms(
-//  gameArray,
-//  memoOthman,
-//  board,
-//  2,
-//  1
-//);
-const AI = new GameAlgorithms(gameArray, memoKhedr, board, 2, 4);
-//currentRound = 0;
+const memoOthman = new GameStateCache(gameArray);
+const khedrKarawita = new GameAlgorithms(gameArray, memoKhedr, board, 1, 3);
+const othmanAbdelJaleelShisha = new GameAlgorithms(
+  gameArray,
+  memoOthman,
+  board,
+  2,
+  3
+);
+//const AI = new GameAlgorithms(gameArray, memoKhedr, board, 2, 4);
+currentRound = 0;
 const AIvsAI = async () => {
   for (let i = 0; i < 100; i++) {
     if (currentRound === 0) {
@@ -754,35 +1074,86 @@ const AIvsAI = async () => {
     });
   }
 };
-map.addEventListener("click", (e) => {
-  if (e.target.style.background) currentCard = e.target;
-  if (!currentCard) return alert("FUCK YOU CHOOSE AN INSECT FOR FUCK SAKE");
-  let gameDrawer = currentRound == 1 ? playerOneDrawer : playerTwoDrawer;
+const playerVsAI = (e, AI) => {
+  //!1) Handle player one round
+  playerOneRound(e);
+  //!2) AI Round
+  const playerOneQueen = gameArray.filter(
+    (hexObj) => hexObj.insectName === "queen" && hexObj.player === 1
+  )[0];
+  if (playerOneQueen)
+    gameArray
+      .filter((hexObj) => hexObj.player === 1)
+      .forEach((hexObj) => hexObj.hexHTML.classList.add("can-hover"));
 
-  if (gameArray.length == 0) {
-    handleRoundOne(gameDrawer, gameArray);
-    return;
-  }
+  //! Never let the AI play, unless the state of the game array has changed.
+  AIRound(AI);
+  // togglePlayers();
+};
 
-  if (beginMovement.playerOne && currentRound == 0) {
-    //!handle movement for player one or handle placement
-
-    handleMovement(e, gameDrawer);
-  }
-  if (beginMovement.playerTwo && currentRound == 1) {
-    //!handle movement for player two or handle placement
-    handleMovement(e, gameDrawer);
-  }
-  handlePlacement(e, gameDrawer, gameArray);
-
-  if (currentRound === 1) {
-    console.time("Alpha Beta");
-    console.log("Best move:");
-    console.log(AI.alphaBeta());
-    console.timeEnd("Alpha Beta");
-    //console.log(board.mergeMovementsAndPlacement(2, 2, gameArray, null));
-  }
-  // console.log(gameArray);
-  // console.log("Player to play: ", currentRound == 0 ? 1 : 2);
+resetBtn.addEventListener("click", (e) => {
+  location.reload();
 });
-// AIvsAI();
+
+difficultyModal.addEventListener("click", (e) => {
+  const textContent = e.target.textContent;
+  if (textContent === "AI VS AI") {
+    selectedModeSpan.textContent = textContent;
+    selectedMode = textContent;
+  } else if (textContent === "Player VS AI (Easy)") {
+    selectedModeSpan.textContent = textContent;
+    selectedMode = textContent;
+  } else if (textContent === "Player VS AI (Medium)") {
+    selectedModeSpan.textContent = textContent;
+    selectedMode = textContent;
+  } else if (textContent === "Player VS AI (Hard)") {
+    selectedModeSpan.textContent = textContent;
+    selectedMode = textContent;
+  } else if (textContent === "Player VS Player") {
+    selectedModeSpan.textContent = textContent;
+    selectedMode = textContent;
+  }
+});
+const easyAI = new GameAlgorithms(
+  gameArray,
+  new GameStateCache(gameArray),
+  board,
+  2,
+  1
+);
+const mediumAI = new GameAlgorithms(
+  gameArray,
+  new GameStateCache(gameArray),
+  board,
+  2,
+  2
+);
+const hardAI = new GameAlgorithms(
+  gameArray,
+  new GameStateCache(gameArray),
+  board,
+  2,
+  3
+);
+
+map.addEventListener("click", async (e) => {
+  board.updateCanMove();
+  if (selectedMode === "AI VS AI") {
+    await AIvsAI();
+  } else if (selectedMode === "Player VS AI (Easy)") {
+    playerVsAI(e, easyAI);
+  } else if (selectedMode === "Player VS AI (Medium)") {
+    playerVsAI(e, mediumAI);
+  } else if (selectedMode === "Player VS AI (Hard)") {
+    playerVsAI(e, hardAI);
+  } else if (selectedMode === "Player VS Player") {
+    playerVsPlayer(e);
+  }
+  board.updateCanMove();
+  if (gameArray.length !== 0) playButton.remove();
+  const playerOneWon = board.isWinningState(2);
+  const playertwoWon = board.isWinningState(1);
+  if (playerOneWon && playertwoWon) displayEndgameMessage("It's a draw!");
+  else if (playerOneWon) displayEndgameMessage("Player 1 wins!");
+  else if (playertwoWon) displayEndgameMessage("Player 2 wins!");
+});

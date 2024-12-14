@@ -26,9 +26,10 @@
         </div>
         <nav class="nav-bar">
           <ul>
+            <li>Selected Mode: <span id="selectedModeSpan">Player VS Player</span></li>
             <li><a href="#" id="playButton">Select mode</a></li>
             <li><a href="#" id="rulesBtn">Rules</a></li>
-            <li><a href="#">Reset</a></li>
+            <li><a href="#" id="resetBtn">Reset</a></li>
           </ul>
         </nav>
       </div>
@@ -37,8 +38,10 @@
       <div id="difficultyModal" class="modal">
         <div class="modal-content">
           <h2>Select Mode</h2>
-          <button class="difficulty-option" data-id="3" >AI VS AI</button>
-          <button class="difficulty-option" data-id="2">Player VS AI</button>
+          <button class="difficulty-option" data-id="5" >AI VS AI</button>
+          <button class="difficulty-option" data-id="4">Player VS AI (Easy)</button>
+          <button class="difficulty-option" data-id="3">Player VS AI (Medium)</button>
+          <button class="difficulty-option" data-id="2">Player VS AI (Hard)</button>
           <button class="difficulty-option" data-id="1">Player VS Player</button>
         </div>
       </div>
@@ -67,7 +70,13 @@
         </div>
         </div>
       </div>
-
+      <!-- Endgame -->
+       <div id="endgame-container">
+          <div id="endgame-content">
+            <span class="span-endgame"></span>
+            <button class="reset-btn-endgame">Reset</button>
+          </div>
+       </div>
       <!-- Content -->
       <div id="content">
         <div class="player player-1">
