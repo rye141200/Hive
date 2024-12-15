@@ -1133,7 +1133,7 @@ const hardAI = new GameAlgorithms(
   new GameStateCache(gameArray),
   board,
   2,
-  3
+  1
 );
 
 map.addEventListener("click", async (e) => {
