@@ -83,13 +83,15 @@ export class Board {
   };
   isWinningState = (opponent) => {
     const opponentQueen = this.gameArray.filter(
-      (hexObj) =>
-        hexObj.insectName === "queen" &&
-        hexObj.player === opponent &&
-        hexObj.hex.stack === 0
+      (hexObj) => hexObj.insectName === "queen" && hexObj.player === opponent
     )[0];
     if (!opponentQueen) return false;
-    if (opponentQueen.adj.length >= 6) return true;
+    const neighbors = [];
+    opponentQueen.adj.forEach((neighbor) => {
+      if (this.gameArray[neighbor].hex.stack === 0)
+        neighbors.push(this.gameArray[neighbor]);
+    });
+    if (neighbors.length >= 6) return true;
     return false;
   };
   mergeMovementsAndPlacement = (
