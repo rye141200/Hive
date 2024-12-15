@@ -1153,7 +1153,7 @@ map.addEventListener("click", async (e) => {
   if (gameArray.length !== 0) playButton.remove();
   const playerOneWon = board.isWinningState(2);
   const playertwoWon = board.isWinningState(1);
-  if (playerOneWon && playertwoWon) displayEndgameMessage("It's a draw!");
-  else if (playerOneWon) displayEndgameMessage("Player 1 wins!");
-  else if (playertwoWon) displayEndgameMessage("Player 2 wins!");
+  //if (playerOneWon && playertwoWon) displayEndgameMessage("It's a draw!");
+  //else if (playerOneWon) displayEndgameMessage("Player 1 wins!");
+  //else if (playertwoWon) displayEndgameMessage("Player 2 wins!");
 });
